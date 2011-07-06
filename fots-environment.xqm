@@ -1,6 +1,9 @@
+
 module namespace env = "http://www.w3.org/2010/09/qt-fots-catalog/environment";
 
 declare namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog";
+declare namespace map  = "http://www.w3.org/2005/xpath-functions/map";
+declare namespace file = "http://expath.org/ns/file";
 
 declare function env:envs(
   $env as element(fots:environment)?,

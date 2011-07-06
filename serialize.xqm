@@ -1,5 +1,7 @@
 module namespace ser = 'http://www.basex.org/serialize';
 
+declare namespace map = "http://www.w3.org/2005/xpath-functions/map";
+
 declare function ser:serialize(
   $seq as item()*
 ) as xs:string {

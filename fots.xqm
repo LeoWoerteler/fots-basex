@@ -1,6 +1,8 @@
 (: global namespace of the test suite. :)
 module namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog";
 
+declare namespace map = "http://www.w3.org/2005/xpath-functions/map";
+
 import module namespace env = "http://www.w3.org/2010/09/qt-fots-catalog/environment"
     at "fots-environment.xqm";
 import module namespace check = "http://www.w3.org/2010/09/qt-fots-catalog/check"
@@ -110,7 +112,7 @@ declare function fots:test(
       $result := 
         try {
           let $res := $eval($query)
-          return check:result($res, $case/result/*)
+          return check:result($eval, $res, $case/result/*)
         } catch *($code, $err) {
           check:error($code, $err, $case/result/*)
         }

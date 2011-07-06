@@ -1,15 +1,17 @@
 module namespace check = "http://www.w3.org/2010/09/qt-fots-catalog/check";
-import module namespace pair='http://www.basex.org/pair'
-    at 'pair.xqm';
+
+
+import module namespace pair='http://www.basex.org/pair' at 'pair.xqm';
 
 import module namespace ser = 'http://www.basex.org/serialize'
   at 'serialize.xqm';
 
 declare function check:result(
-  $res as item()*,
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
   $result as element()
 ) as element()? {
-  let $err := check:res($res, $result)
+  let $err := check:res($eval, $res, $result)
   return if(empty($err)) then () else
     <out>
       <result>{ser:serialize($res)}</result>
@@ -20,8 +22,8 @@ declare function check:result(
 };
 
 declare function check:error(
-  $code as xs:QName,
-  $error as xs:string,
+  $code   as xs:QName,
+  $error  as xs:string,
   $result as element()
 ) as element()? {
   let $err := check:err($code, $error, $result)
@@ -35,19 +37,20 @@ declare function check:error(
 };
 
 declare function check:res(
-  $res as item()*,
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
   $result as element()
 ) as xs:string* {
   let $test := local-name($result)
   return switch($test)
     case 'all-of'
-      return map(check:res($res, ?), $result/*)
+      return map(check:res($eval, $res, ?), $result/*)
     case 'any-of'
-      return check:any-of($res, $result)
+      return check:any-of($eval, $res, $result)
     case 'assert-eq'
-      return check:assert-eq($res, $result)
+      return check:assert-eq($eval, $res, $result)
     case 'assert-type'
-      return check:assert-type($res, $result)
+      return check:assert-type($eval, $res, $result)
     case 'assert-string-value'
       return check:assert-string-value($res, $result)
     case 'assert-true'
@@ -55,13 +58,13 @@ declare function check:res(
     case 'assert-false'
       return check:assert-bool($res, $result, false())
     case 'assert-deep-eq'
-      return check:assert-deep-eq($res, $result)
+      return check:assert-deep-eq($eval, $res, $result)
     case 'assert-serialization'
       return check:assert-serialization($res, $result)
     case 'assert-permutation'
-      return check:assert-permutation($res, $result)
+      return check:assert-permutation($eval, $res, $result)
     case 'assert'
-      return check:assert($res, $result)
+      return check:assert($eval, $res, $result)
     case 'assert-count' 
       return
         let $count := count($res),
@@ -93,7 +96,8 @@ declare function check:err(
 };
 
 declare function check:any-of(
-  $res as item()*,
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
   $result as element()
 ) {
   pair:fst(
@@ -101,7 +105,7 @@ declare function check:any-of(
       function($p, $n) {
         if(pair:snd($p)) then $p
         else (
-          let $r  := check:res($res, $n),
+          let $r  := check:res($eval, $res, $n),
               $ok := empty($r)
           return pair:new(
             if($ok) then () else (pair:fst($p), $r),
@@ -125,12 +129,13 @@ declare function check:assert-bool(
 };
 
 declare function check:assert(
-  $res as item()*,
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
   $result as element()
 ) as xs:string* {
   try {
     let $assert :=
-      util:eval(concat('function($result) { ', xs:string($result), ' }'))
+      $eval(concat('function($result) { ', xs:string($result), ' }'))
     return if($assert($res)) then ()
       else concat('Assertion ''', $result, ''' failed.')
   } catch *($code, $err) {
@@ -140,13 +145,13 @@ declare function check:assert(
 };
 
 declare function check:assert-type(
-  $res as item()*,
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
   $result as element()
 ) as xs:string* {
   try {
     let $type := xs:string($result),
-        $test := util:eval(concat(
-          'function($x) { $x instance of ', $type, ' }'))
+        $test := $eval(concat('function($x) { $x instance of ', $type, ' }'))
     return if($test($res)) then ()
       else concat('Result doesn''t have type ''', $type, '''.')
   } catch *($code, $err) {
@@ -156,11 +161,12 @@ declare function check:assert-type(
 };
 
 declare function check:assert-eq(
-  $res as item()*,
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
   $result as element()
 ) as xs:string* {
   try {
-    let $exp := util:eval($result)
+    let $exp := $eval($result)
     return if($exp eq $res or $exp ne $exp and $res ne $res) then ()
       else concat('Result doesn''t match expected item ''',
         $exp, '''.')
@@ -186,11 +192,12 @@ declare function check:assert-string-value(
 };
 
 declare function check:assert-deep-eq(
+  $eval   as function(xs:string) as item()*,
   $res as item()*,
   $result as element()
 ) {
   try {
-    let $exp := util:eval($result)
+    let $exp := $eval($result)
     return if(deep-equal($res, $exp)) then ()
       else concat('Result is not deep-equal to ''', $result, '''.')
   } catch * ($code, $err) {
@@ -225,11 +232,12 @@ declare function check:assert-serialization(
 };
 
 declare function check:assert-permutation(
-  $res as item()*,
+  $eval   as function(xs:string) as item()*,
+  $res    as item()*,
   $result as element()
 ) {
   try {
-    let $exp := util:eval($result)
+    let $exp := $eval($result)
     return if(check:unordered($res, $exp)) then ()
       else concat('Result isn''t a permutation of ''', $result, '''.')
   } catch * ($code, $err) {
