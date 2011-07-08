@@ -113,8 +113,8 @@ declare function fots:test(
         try {
           let $res := $eval($query)
           return check:result($eval, $res, $case/result/*)
-        } catch *($code, $err) {
-          check:error($code, $err, $case/result/*)
+        } catch * {
+          check:error($err:code, $err:description, $case/result/*)
         }
   return if(empty($result)) then ()
     else fots:wrong($case, $result, $query)

@@ -1,8 +1,13 @@
+(:~
+ : XQuery driver for the Functions and Operators Test Suite.
+ : @author Leo Wörteler
+ : @version 0.1
+ :)
 import module namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog"
   at 'fots.xqm';
 
 (:~ Path to the test suite files. :)
-declare variable $path as xs:string external;
+declare variable $path as xs:string external := "../";
 
 (:~
  : Predicate function for excluding tests with unsupported dependencies.
@@ -42,10 +47,8 @@ declare function local:eval(
   util:eval(replace($query, '&#xD;', '&amp;#xD;'))
 };
 
-let $res :=
-  fots:run(
-    local:eval#1,
-    $path,
-    local:exclude#2
-  )/*
-return $res
+fots:run(
+  local:eval#1,
+  $path,
+  local:exclude#2
+)
