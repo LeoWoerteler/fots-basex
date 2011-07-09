@@ -138,9 +138,9 @@ declare function check:assert(
       $eval(concat('function($result) { ', xs:string($result), ' }'))
     return if($assert($res)) then ()
       else concat('Assertion ''', $result, ''' failed.')
-  } catch *($code, $err) {
+  } catch * {
     concat('Assertion ''', $result,
-      ''' failed with: [', $code, '] ', $err)
+      ''' failed with: [', $err:code, '] ', $err:description)
   }
 };
 
@@ -154,9 +154,9 @@ declare function check:assert-type(
         $test := $eval(concat('function($x) { $x instance of ', $type, ' }'))
     return if($test($res)) then ()
       else concat('Result doesn''t have type ''', $type, '''.')
-  } catch *($code, $err) {
+  } catch * {
     concat('Type check for ''', $result,
-      ''' failed with: [', $code, '] ', $err)
+      ''' failed with: [', $err:code, '] ', $err:description)
   }
 };
 
@@ -170,9 +170,9 @@ declare function check:assert-eq(
     return if($exp eq $res or $exp ne $exp and $res ne $res) then ()
       else concat('Result doesn''t match expected item ''',
         $exp, '''.')
-  } catch *($code, $err) {
+  } catch * {
     concat('Comparison to ''', $result/text(), ''' failed with: [',
-      $code, '] ', $err)
+      $err:code, '] ', $err:description)
   }
 };
 
@@ -185,9 +185,9 @@ declare function check:assert-string-value(
         $exp := xs:string($result)
     return if($str eq $exp) then ()
       else concat('Expected ''', $exp, ''', found ''', $str, '''.')
-  } catch * ($code, $err) {
+  } catch * {
     concat('Stringep comparison to ', $result, ' failed with: [',
-      $code, '] ', $err)
+      $err:code, '] ', $err:description)
   }
 };
 
@@ -200,9 +200,9 @@ declare function check:assert-deep-eq(
     let $exp := $eval($result)
     return if(deep-equal($res, $exp)) then ()
       else concat('Result is not deep-equal to ''', $result, '''.')
-  } catch * ($code, $err) {
+  } catch * {
     concat('Deep comparison to ''', $result, ''' failed with: [',
-      $code, '] ', $err)
+      $err:code, '] ', $err:description)
   }
 };
 
@@ -225,9 +225,9 @@ declare function check:assert-serialization(
         $act := string-join(map($to-str, $res), ' ')
     return if($act eq string($result)) then ()
       else concat('Serialized result ''', $act, ''' not equal to ''', $result, '''.')
-  } catch * ($code, $err) {
+  } catch * {
     concat('Serialized comparison to ''', $result, ''' failed with: [',
-      $code, '] ', $err)
+      $err:code, '] ', $err:description)
   }
 };
 
@@ -240,9 +240,9 @@ declare function check:assert-permutation(
     let $exp := $eval($result)
     return if(check:unordered($res, $exp)) then ()
       else concat('Result isn''t a permutation of ''', $result, '''.')
-  } catch * ($code, $err) {
+  } catch * {
     concat('Unordered comparison to ', $result, ' failed with: [',
-      $code, '] ', $err)
+      $err:code, '] ', $err:description)
   }
 };
 
