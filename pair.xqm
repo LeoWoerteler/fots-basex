@@ -1,5 +1,7 @@
 (:~
  : Module for a simple pair data structure.
+ :
+ : @author BaseX Team 2005-11, BSD License
  : @author Leo Wörteler
  : @version 0.1
  :)

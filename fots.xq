@@ -1,5 +1,7 @@
 (:~
- : XQuery driver for the Functions and Operators Test Suite.
+ : Start script of the XQuery driver for the QT3 Test Suite.
+ :
+ : @author BaseX Team 2005-11, BSD License
  : @author Leo Wörteler
  : @version 0.1
  :)

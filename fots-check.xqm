@@ -1,11 +1,28 @@
+(:~
+ : Module containing the assertion check used by th QT3 test suite.
+ : All assertions are modeled as functions that return the empty sequence
+ : on success and a sequence of error descriptions otherwise.
+ :
+ : @author BaseX Team 2005-11, BSD License
+ : @author Leo Wörteler
+ : @version 0.1
+ :)
 module namespace check = "http://www.w3.org/2010/09/qt-fots-catalog/check";
 
-
+(:~ Small utility module providing an implementation of typed pairs. :)
 import module namespace pair='http://www.basex.org/pair' at 'pair.xqm';
 
+(:~ Serialization module. :)
 import module namespace ser = 'http://www.basex.org/serialize'
   at 'serialize.xqm';
 
+(:~
+ : Checks the given against the expected result.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @return error description if the check failed, empty sequence otherwise
+ :)
 declare function check:result(
   $eval   as function(xs:string) as item()*,
   $res    as item()*,
@@ -21,6 +38,13 @@ declare function check:result(
     </out>
 };
 
+(:~
+ : Checks the given error code against the expected results.
+ : @param $code error code
+ : @param $error error description
+ : @param $result expected result
+ : @return error description if the check failed, empty sequence otherwise
+ :)
 declare function check:error(
   $code   as xs:QName,
   $error  as xs:string,
@@ -36,6 +60,13 @@ declare function check:error(
     </out>
 };
 
+(:~
+ : Dispatch function for the different assertions.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:res(
   $eval   as function(xs:string) as item()*,
   $res    as item()*,
@@ -80,6 +111,13 @@ declare function check:res(
         concat('Unknown assertion: "', $test, '"'))
 };
 
+(:~
+ : Compares the given error code to those expected.
+ : @param $code error code
+ : @param $error error description
+ : @param $result expected result
+ : @return possibly empty sequence of errors
+ :)
 declare function check:err(
   $code as xs:QName,
   $err as xs:string,
@@ -95,6 +133,13 @@ declare function check:err(
   )
 };
 
+(:~
+ : Checks if any of the child assertions succeed.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:any-of(
   $eval   as function(xs:string) as item()*,
   $res    as item()*,
@@ -119,6 +164,13 @@ declare function check:any-of(
   )
 };
 
+(:~
+ : Checks if the result is the given boolean value.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $exp expected boolean result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert-bool(
   $res as item()*,
   $result as element(),
@@ -128,6 +180,13 @@ declare function check:assert-bool(
   else concat('Query doesn''t evaluate to ''', $exp, '''')
 };
 
+(:~
+ : Checks the return value of an arbitrary XQuery query on the result.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert(
   $eval   as function(xs:string) as item()*,
   $res    as item()*,
@@ -144,6 +203,13 @@ declare function check:assert(
   }
 };
 
+(:~
+ : Checks if the result has the given type.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert-type(
   $eval   as function(xs:string) as item()*,
   $res    as item()*,
@@ -160,6 +226,13 @@ declare function check:assert-type(
   }
 };
 
+(:~
+ : Checks if the result is equal to the result of the given XQuery expression.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert-eq(
   $eval   as function(xs:string) as item()*,
   $res    as item()*,
@@ -167,6 +240,7 @@ declare function check:assert-eq(
 ) as xs:string* {
   try {
     let $exp := $eval($result)
+    (: Also check if both are xs:double('NaN') or xs:float('NaN'). :)
     return if($exp eq $res or $exp ne $exp and $res ne $res) then ()
       else concat('Result doesn''t match expected item ''',
         $exp, '''.')
@@ -176,6 +250,12 @@ declare function check:assert-eq(
   }
 };
 
+(:~
+ : Checks if the result has the given string value.
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert-string-value(
   $res as item()*,
   $result as element()
@@ -186,11 +266,18 @@ declare function check:assert-string-value(
     return if($str eq $exp) then ()
       else concat('Expected ''', $exp, ''', found ''', $str, '''.')
   } catch * {
-    concat('Stringep comparison to ', $result, ' failed with: [',
+    concat('String comparison to ', $result, ' failed with: [',
       $err:code, '] ', $err:description)
   }
 };
 
+(:~
+ : Checks if the result is deep-equal to the result of the given expression.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert-deep-eq(
   $eval   as function(xs:string) as item()*,
   $res as item()*,
@@ -206,6 +293,12 @@ declare function check:assert-deep-eq(
   }
 };
 
+(:~
+ : Checks if the result serializes to the given string.
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert-serialization(
   $res as item()*,
   $result as element()
@@ -231,6 +324,13 @@ declare function check:assert-serialization(
   }
 };
 
+(:~
+ : Checks if the result is a permutation of the result of the given expression.
+ : @param $eval implementation-dependent function for dynamic XQuery evaluation
+ : @param $res result to be checked
+ : @param $result expected result
+ : @result possibly empty sequence of error descriptions
+ :)
 declare function check:assert-permutation(
   $eval   as function(xs:string) as item()*,
   $res    as item()*,
@@ -246,6 +346,13 @@ declare function check:assert-permutation(
   }
 };
 
+(:~
+ : Helper function for unordered comparison of two sequences of items.
+ : @param $xs first sequence
+ : @param $ys second sequence
+ : @return true() if the second sequence is a permutation of the first,
+ :   false() otherwise
+ :)
 declare function check:unordered(
   $xs as item()*,
   $ys as item()*
@@ -257,6 +364,14 @@ declare function check:unordered(
        and check:unordered(tail($xs), remove($ys, $i))
 };
 
+(:~
+ : Finds the index of the first item in a sequence that's deep-equal to a given
+ : item.
+ : @param $xs sequence
+ : @param $x item to be found
+ : @$i current index
+ : @param index of item if found, empty sequence otherwise
+ :)
 declare function check:index-of(
   $xs as item()*,
   $x  as item(),

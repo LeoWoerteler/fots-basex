@@ -1,4 +1,10 @@
-(: global namespace of the test suite. :)
+(:~
+ : XQuery driver for the QT3 Test Suite.
+ :
+ : @author BaseX Team 2005-11, BSD License
+ : @author Leo Wörteler
+ : @version 0.1
+ :)
 module namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog";
 
 declare namespace map = "http://www.w3.org/2005/xpath-functions/map";

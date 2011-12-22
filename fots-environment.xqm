@@ -1,10 +1,26 @@
-
+(:~
+ : Module for assembling an XQuery prolog from the environment specified by
+ : the QT3 test suite.
+ :
+ : @author BaseX Team 2005-11, BSD License
+ : @author Leo Wörteler
+ : @version 0.1
+ :)
 module namespace env = "http://www.w3.org/2010/09/qt-fots-catalog/environment";
 
+(:~ Main module namespace. :)
 declare namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog";
+(:~ XQuery maps as proposed by M. Kay. :)
 declare namespace map  = "http://www.w3.org/2005/xpath-functions/map";
+(:~ EXPath file module for checking for the existence of files. :)
 declare namespace file = "http://expath.org/ns/file";
 
+(:~
+ : Recursively resolves references between environments.
+ : @param $env current environment
+ : @param $envs global environments
+ : @return all properties of the environment
+ :)
 declare function env:envs(
   $env as element(fots:environment)?,
   $envs as element(fots:environment)*
@@ -13,6 +29,11 @@ declare function env:envs(
   return (if($ref) then env:envs($envs[@name eq $ref], $envs) else (), $env/*)
 };
 
+(:~
+ : Builds a map containing all properties of the given environment.
+ : @param $env environment
+ : @param $envs global environments
+ :)
 declare function env:environment(
   $env as element(fots:environment)?,
   $envs as element(fots:environment)*
@@ -20,6 +41,12 @@ declare function env:environment(
   fold-left(env:build#2, map{}, env:envs($env, $envs))
 };
 
+(:~
+ : Updates the environment by inserting the given property.
+ : @param $map environment map
+ : @param $env environment property
+ : @return updated map
+ :)
 declare function env:build(
   $map as map(xs:string, item()*),
   $env as element()
@@ -64,10 +91,23 @@ declare function env:build(
   )
 };
 
+(:~
+ : Variant of <code>map:keys(map(*))</code> that accepts the empty sequence.
+ : @param $map possibly absent map
+ : @return keys of the map if existent, empty sequence otherwise
+ :)
 declare function env:keys($map as map(*)?) as item()* {
   if(exists($map)) then map:keys($map) else ()
 };
 
+(:~
+ : Returns a copy of <code>$map</code> where <code>$value</code> is bound to
+ : the key <code>$key</code>.
+ : @param $map map to insert into
+ : @param $key key to insert
+ : @param $value value to bind
+ : @return updated map
+ :)
 declare function env:insert(
   $map as map(*),
   $key as xs:anyAtomicType,
@@ -76,6 +116,13 @@ declare function env:insert(
   map:new(($map, map:entry($key, $value)))
 };
 
+(:~
+ : Assembles the query prolog from the environment map.
+ : @param $map environment
+ : @param $path path of the test suite
+ : @param $sub test-case subdirectory
+ : @return query prolog
+ :)
 declare function env:prolog(
   $map as map(*),
   $path as xs:string,
