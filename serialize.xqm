@@ -1,5 +1,5 @@
 (:~
- : Module for serializing artitrary XQuery sequences to strings.
+ : Module for serializing arbitrary XQuery sequences to strings.
  :
  : @author BaseX Team 2005-11, BSD License
  : @author Leo Wörteler
