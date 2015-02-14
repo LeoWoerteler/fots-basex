@@ -74,11 +74,13 @@ declare function fots:run(
   $prefix as xs:string
 ) as element(fots:failures) {
   <failures>{
-    let $doc := doc(concat($path, 'catalog.xml')),
+    let $doc := doc($path || '/catalog.xml'),
         $env := $doc//environment
+
     for $set in $doc//test-set[starts-with(@name, $catalog)]
-    let $href := $set/@href,
-        $doc := doc(concat($path, $href))
+    let $href := $set/@file,
+        $doc := doc($path || "/" || $href)
+
     for $case in $doc//test-case[starts-with(@name, $prefix)]
     let $env := $env | $doc//environment,
         $map := env:environment($case/environment, $env)

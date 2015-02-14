@@ -128,53 +128,55 @@ declare function env:prolog(
   $path as xs:string,
   $sub as xs:string
 ) {
-  string-join(
-    (
-      let $base-uri := $map('static-base-uri')
-      return concat('declare base-uri "',
-        if(exists($base-uri)) then $base-uri else concat($path, $sub),
-        '";'),
+  let $default-base := string-join(($path, $sub), '/')
+  return
+    string-join(
+      (
+        let $base-uri := $map('static-base-uri')
+        return concat('declare base-uri "',
+          if(exists($base-uri)) then $base-uri else $default-base,
+          '";'),
 
-      let $ns := $map('namespace')
-      for $k in env:keys($ns)
-      return concat('declare namespace ', $k, ' = "', $ns($k), '";'),
+        let $ns := $map('namespace')
+        for $k in env:keys($ns)
+        return concat('declare namespace ', $k, ' = "', $ns($k), '";'),
 
-      let $lib := $map('function-library')
-      for $k in env:keys($lib)
-      return concat('import module namespace "', $k, '" at "', $lib($k), '";'),
+        let $lib := $map('function-library')
+        for $k in env:keys($lib)
+        return concat('import module namespace "', $k, '" at "', $lib($k), '";'),
 
-      let $funs := $map('function')
-      return if($funs = 'fots:copy')
-        then concat(
-          'import module namespace fots',
-          ' = "http://www.w3.org/2010/09/qt-fots-catalog"',
-          ' at "fots-copy.xqm";'
-        ) else (),
+        let $funs := $map('function')
+        return if($funs = 'fots:copy')
+          then concat(
+            'import module namespace fots',
+            ' = "http://www.w3.org/2010/09/qt-fots-catalog"',
+            ' at "fots-copy.xqm";'
+          ) else (),
 
-      let $coll := $map('collation')
-      where exists($coll) and $coll[2]
-      return concat("declare default collation '", $coll[1], "';"),
+        let $coll := $map('collation')
+        where exists($coll) and $coll[2]
+        return concat("declare default collation '", $coll[1], "';"),
 
-      let $source := $map('source')
-      where exists($source)
-      return concat("declare context item := doc('",
-        if(file:exists(concat($path, $source)))
-          then $path else concat($path, $sub),
-      $source, "');"),
+        let $source := $map('source')
+        where exists($source)
+        return concat("declare context item := doc('",
+          if(file:exists(string-join(($path, $source), '/')))
+            then $path else $default-base,
+        $source, "');"),
 
-      let $dfs := $map('decimal-format')
-      for $k in env:keys($dfs)
-      let $decl := if($k eq '')
-                   then 'default decimal-format'
-                   else concat('decimal-format ', $k)
-      return concat('declare ', $decl, ' ',
-        string-join(
-          let $df := $dfs($k)
-          for $k2 in map:keys($df)
-          return concat($k2, '="', $df($k2), '"')
-        , ' ')
-      , ';')
-    ), '&#xa;'
-  )
+        let $dfs := $map('decimal-format')
+        for $k in env:keys($dfs)
+        let $decl := if($k eq '')
+                     then 'default decimal-format'
+                     else concat('decimal-format ', $k)
+        return concat('declare ', $decl, ' ',
+          string-join(
+            let $df := $dfs($k)
+            for $k2 in map:keys($df)
+            return concat($k2, '="', $df($k2), '"')
+          , ' ')
+        , ';')
+      ), '&#xa;'
+    )
 };
 
