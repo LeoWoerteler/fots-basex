@@ -83,12 +83,12 @@ declare function fots:run(
     let $env := $env | $doc//environment,
         $map := env:environment($case/environment, $env)
     where not(map:contains($map, 'collation'))
-      and fold-left(
-          function($rest, $dep) {
-            $rest and not($exclude($dep/@type, $dep/@value))
-          },
-          true(),
-          $case/dependency
+        and fold-left(
+            $case/dependency,
+            true(),
+            function($rest, $dep) {
+                $rest and not($exclude($dep/@type, $dep/@value))
+            }
         )
     return fots:test($eval, $case, $map, $path, replace($href, '/.*','/'))
   }</failures>

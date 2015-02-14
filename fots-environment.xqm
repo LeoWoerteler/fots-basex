@@ -38,7 +38,7 @@ declare function env:environment(
   $env as element(fots:environment)?,
   $envs as element(fots:environment)*
 ) as map(xs:string, item()*) {
-  fold-left(env:build#2, map{}, env:envs($env, $envs))
+  fold-left(env:envs($env, $envs), map{}, env:build#2)
 };
 
 (:~

@@ -147,6 +147,8 @@ declare function check:any-of(
 ) {
   pair:fst(
     fold-left(
+      $result/*,
+      pair:new((), false()),
       function($p, $n) {
         if(pair:snd($p)) then $p
         else (
@@ -157,9 +159,7 @@ declare function check:any-of(
             $ok
           )
         )
-      },
-      pair:new((), false()),
-      $result/*
+      }
     )
   )
 };
