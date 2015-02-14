@@ -47,13 +47,13 @@ declare function check:result(
  :)
 declare function check:error(
   $code   as xs:QName,
-  $error  as xs:string,
+  $error  as xs:string?,
   $result as element()
 ) as element()? {
   let $err := check:err($code, $error, $result)
   return if(empty($err)) then () else
     <out>
-      <result>Error: {concat('[', $code, '] ', $error)}</result>
+      <result>Error: {string-join(('[', $code, ']', $error), ' ')}</result>
       <errors>{
         map(function($e){ <error>{$e}</error> }, $err)
       }</errors>
@@ -120,7 +120,7 @@ declare function check:res(
  :)
 declare function check:err(
   $code as xs:QName,
-  $err as xs:string,
+  $err as xs:string?,
   $result as element()
 ) as xs:string* {
   let $errors := $result/descendant-or-self::*:error
