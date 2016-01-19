@@ -9,7 +9,7 @@ import module namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog"
   at 'fots.xqm';
 
 (:~ Path to the test suite files. :)
-declare variable $path as xs:string external := "../";
+declare variable $path as xs:string external := "/QT3-test-suite";
 
 (:~
  : Predicate function for excluding tests with unsupported dependencies.

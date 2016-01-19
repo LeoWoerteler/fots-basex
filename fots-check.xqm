@@ -16,6 +16,8 @@ import module namespace pair='http://www.basex.org/pair' at 'pair.xqm';
 import module namespace ser = 'http://www.basex.org/serialize'
   at 'serialize.xqm';
 
+declare namespace fots = "http://www.w3.org/2010/09/qt-fots-catalog";
+
 (:~
  : Checks the given against the expected result.
  : @param $eval implementation-dependent function for dynamic XQuery evaluation
@@ -47,13 +49,13 @@ declare function check:result(
  :)
 declare function check:error(
   $code   as xs:QName,
-  $error  as xs:string,
+  $error  as xs:string?,
   $result as element()
 ) as element()? {
   let $err := check:err($code, $error, $result)
   return if(empty($err)) then () else
     <out>
-      <result>Error: {concat('[', $code, '] ', $error)}</result>
+      <result>Error: {string-join(('[', $code, ']', $error), ' ')}</result>
       <errors>{
         map(function($e){ <error>{$e}</error> }, $err)
       }</errors>
@@ -120,17 +122,36 @@ declare function check:res(
  :)
 declare function check:err(
   $code as xs:QName,
-  $err as xs:string,
+  $err as xs:string?,
   $result as element()
 ) as xs:string* {
-  let $errors := $result/descendant-or-self::*:error
-  return if(exists($errors[@code = xs:string($code)])) then ()
-  else if(exists($errors)) then (
-    concat('Wrong error code [', $code, '] (', $err, '), expected: [',
-      string-join($errors//@code, '], ['), ']')
-  ) else (
-    concat('Expected result, found error: [', $code, '] ', $err)
-  )
+  let $error := $result/descendant-or-self::fots:error
+  return
+    if($error ! check:error-to-qname(.) eq $code) then ()
+    else if(exists($error)) then (
+      concat('Wrong error code [', $code, '] (', $err, '), expected: [',
+          string-join($error/@code, '], ['), ']')
+    ) else (
+      concat('Expected result, found error: [', $code, '] ', $err)
+    )
+};
+
+(:~
+ : An error code may be either an NCName, i.e. local-name or
+ : EQName (Q{uri}local).
+ :
+ : If an NCName we assume the default err namespace for
+ : XPath/XQuery http://www.w3.org/2005/xqt-errors/
+ :)
+declare %private function check:error-to-qname(
+    $error as element(fots:error)
+) as xs:QName {
+    let $eq-or-nc := fn:analyze-string($error/@code, "(?:Q\{(.+)\}(.+))|([^:]+)")//fn:group
+    return
+        if($eq-or-nc[@nr eq "3"]) then
+            QName("http://www.w3.org/2005/xqt-errors/", $eq-or-nc[@nr eq "3"]/text())
+        else
+            QName($eq-or-nc[@nr eq "1"]/text(), $eq-or-nc[@nr eq "2"]/text())
 };
 
 (:~
@@ -147,6 +168,8 @@ declare function check:any-of(
 ) {
   pair:fst(
     fold-left(
+      $result/*,
+      pair:new((), false()),
       function($p, $n) {
         if(pair:snd($p)) then $p
         else (
@@ -157,9 +180,7 @@ declare function check:any-of(
             $ok
           )
         )
-      },
-      pair:new((), false()),
-      $result/*
+      }
     )
   )
 };
